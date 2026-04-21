@@ -275,8 +275,8 @@ export default function App() {
                     <span style={{fontFamily:"'DM Mono',monospace",fontWeight:600,fontSize:15,color:"#ddd",letterSpacing:"0.04em"}}>{lr.text}</span>
                     <span style={{marginLeft:"auto",fontFamily:"'DM Mono',monospace",fontSize:14,fontWeight:600,color:"#fff"}}>{lr.lengthFinal}<span style={{fontSize:11,color:"#666"}}> mm</span></span>
                     <span style={{fontFamily:"'DM Mono',monospace",fontSize:11,color:"#555"}}>(Σ112={lr.totalAt112})</span>
-                    <span style={{fontFamily:"'DM Mono',monospace",fontSize:11,color:lr.maxAbove>height?"#e8a050":"#555"}}>↑{lr.maxAbove}</span>
-                    {lr.maxBelow>0&&<span style={{fontFamily:"'DM Mono',monospace",fontSize:11,color:"#7090c0"}}>↓{lr.maxBelow}</span>}
+                    <span title={`Maximální výška řádku nad účařím (včetně diakritiky): ${lr.maxAbove} mm`} style={{fontFamily:"'DM Mono',monospace",fontSize:11,color:lr.maxAbove>height?"#e8a050":"#555",cursor:"help"}}>↑{lr.maxAbove}</span>
+                    {lr.maxBelow>0&&<span title={`Maximální hloubka descenderů pod účařím: ${lr.maxBelow} mm`} style={{fontFamily:"'DM Mono',monospace",fontSize:11,color:"#7090c0",cursor:"help"}}>↓{lr.maxBelow}</span>}
                   </div>
                   {expLine===idx&&(
                     <div style={{padding:"8px 14px 14px",borderTop:"1px solid #1a1a1a"}}>
@@ -288,10 +288,18 @@ export default function App() {
                           const accentBot = di&&!di.below ? Math.round(di.b*lr.k) : 0;
                           const descendH = hd&&hd[1]>=8 ? Math.round(hd[1]*lr.k) : 0;
                           return(
-                          <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",minWidth:d.type==="kern"?26:32,padding:"3px 2px",borderRadius:5,
+                          <div key={i} title={
+                            d.type==="kern"
+                              ? `Kerning (mezera) mezi '${d.char1}' a '${d.char2}'\nPři h=${height}: ${d.width===null?"nedefinováno":Math.round(d.width*lr.k*lr.compression/100)+" mm"}\nPři h=112: ${d.width===null?"n/d":d.width+" mm"}`
+                              : d.type==="space"
+                              ? `Mezera mezi slovy\nPři h=${height}: ${Math.round(d.width*lr.k)} mm`
+                              : d.type==="char" && !d.error
+                              ? `Šířka znaku '${d.char}'\nPři h=${height}: ${Math.round(d.width*lr.k*lr.compression/100)} mm\nPři h=112: ${d.width} mm`
+                              : d.error ? `Neznámý znak '${d.char}' — není v R 90` : ""
+                          } style={{display:"flex",flexDirection:"column",alignItems:"center",minWidth:d.type==="kern"?26:32,padding:"3px 2px",borderRadius:5,cursor:"help",
                             background:d.error?"#3a1515":d.undefined?"#3a2a15":d.type==="kern"?"#141414":d.type==="space"?"#1a1520":"transparent"}}>
                             {accentH>0&&(
-                              <div style={{display:"flex",flexDirection:"column",alignItems:"center",borderBottom:"1px solid #444",paddingBottom:2,marginBottom:2,width:"100%"}}>
+                              <div title={`Diakritika '${di.s}'\nVýška znaménka: ${accentH} mm\nZačíná ${accentBot} mm nad účařím (= vrchol základního písmene)`} style={{display:"flex",flexDirection:"column",alignItems:"center",borderBottom:"1px solid #444",paddingBottom:2,marginBottom:2,width:"100%",cursor:"help"}}>
                                 <span style={{fontSize:13,color:"#e8a050",fontFamily:"'DM Mono',monospace",lineHeight:1}}>{di.s}</span>
                                 <span style={{fontSize:9,color:"#a07040",fontFamily:"'DM Mono',monospace"}}>{accentH}mm</span>
                                 <span style={{fontSize:8,color:"#664",fontFamily:"'DM Mono',monospace"}}>↑{accentBot}</span>
@@ -307,7 +315,7 @@ export default function App() {
                               {d.error?"?":d.undefined?"n/d":Math.round(d.width*lr.k*lr.compression/100)}
                             </span>
                             {descendH>0&&(
-                              <div style={{borderTop:"1px solid #334",paddingTop:2,marginTop:2,width:"100%",textAlign:"center"}}>
+                              <div title={`Dotah pod účaří: ${descendH} mm`} style={{borderTop:"1px solid #334",paddingTop:2,marginTop:2,width:"100%",textAlign:"center",cursor:"help"}}>
                                 <span style={{fontSize:9,color:"#5080b0",fontFamily:"'DM Mono',monospace"}}>↓{descendH}mm</span>
                               </div>
                             )}
