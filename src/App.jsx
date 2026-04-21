@@ -13,6 +13,20 @@ const SIGN_PRESETS = {
   IS8b: { name: "IS 8b", lineGap: 4, padTop: 5, padBottom: 5, padSide: 5, desc: "Dálková návěst se vzdáleností – víceřádková se vzdálenostmi" },
 };
 
+// Diakritika: symbol a výška základního písmene při h=112
+// b = výška základního písmene (verzálky=112, minusky bez dotahu=81, s dotahem=112)
+const DIACRITIC_INFO = {
+  'Á':{s:'´',b:112},'É':{s:'´',b:112},'Í':{s:'´',b:112},'Ó':{s:'´',b:112},'Ú':{s:'´',b:112},'Ý':{s:'´',b:112},'Ĺ':{s:'´',b:112},'Ŕ':{s:'´',b:112},'Ć':{s:'´',b:112},'Ś':{s:'´',b:112},'Ń':{s:'´',b:112},
+  'á':{s:'´',b:81},'é':{s:'´',b:81},'í':{s:'´',b:81},'ó':{s:'´',b:81},'ú':{s:'´',b:81},'ý':{s:'´',b:81},'ĺ':{s:'´',b:112},'ŕ':{s:'´',b:81},'ć':{s:'´',b:81},'ś':{s:'´',b:81},'ń':{s:'´',b:81},
+  'Č':{s:'ˇ',b:112},'Š':{s:'ˇ',b:112},'Ž':{s:'ˇ',b:112},'Ř':{s:'ˇ',b:112},'Ň':{s:'ˇ',b:112},'Ť':{s:'ˇ',b:112},
+  'č':{s:'ˇ',b:81},'š':{s:'ˇ',b:81},'ž':{s:'ˇ',b:81},'ř':{s:'ˇ',b:81},'ň':{s:'ˇ',b:81},
+  'Ä':{s:'¨',b:112},'Ö':{s:'¨',b:112},'Ü':{s:'¨',b:112},'ä':{s:'¨',b:81},'ö':{s:'¨',b:81},'ü':{s:'¨',b:81},
+  'Ů':{s:'°',b:112},'ů':{s:'°',b:81},
+  'Ô':{s:'^',b:112},'ô':{s:'^',b:81},
+  'Ż':{s:'·',b:112},'ż':{s:'·',b:81},
+  'Ą':{s:'˛',b:112,below:true},'Ę':{s:'˛',b:112,below:true},'ą':{s:'˛',b:81,below:true},'ę':{s:'˛',b:81,below:true},
+};
+
 // Výšky nad/pod účařím při h=112 (pouze nestandardní znaky; standard = [112, 0])
 // [výška nad účařím, výška pod účařím] — platí pro MIT i ENG (stejná osnova)
 const CHAR_HEIGHTS = {"0":[113,1],"2":[113,0],"3":[113,1],"5":[112,1],"6":[112,1],"8":[113,1],"9":[113,0],"Ť":[142,0],"Á":[142,0],"U":[112,1],"o":[81,1],"(":[120,8],"Ä":[136,0],"Ú":[142,1],"ó":[112,1],")":[120,8],"Ą":[112,32],"Ů":[150,1],"ö":[112,1],"%":[113,1],"Ü":[136,1],"ô":[112,1],"+":[68,0],"C":[113,1],"p":[81,32],"Č":[142,1],"q":[81,32],"=":[66,0],"Ć":[142,1],"r":[81,0],"-":[52,0],".":[16,0],"Ď":[142,0],"Ý":[142,0],"s":[80,1],":":[66,0],"É":[142,0],"Ž":[142,0],"š":[112,1],";":[44,12],"Ě":[142,0],"Ź":[142,0],"ś":[112,1],"„":[16,6],"Ę":[112,32],"Ż":[136,0],"t":[104,0],"a":[81,1],"G":[113,1],"á":[112,1],"u":[80,1],"<":[80,0],"ä":[112,1],"ú":[112,1],">":[80,0],"ą":[81,32],"ů":[120,1],"Í":[142,0],"b":[112,1],"ü":[112,1],"J":[112,1],"c":[81,1],"v":[80,0],"č":[112,1],"w":[80,0],"ć":[112,1],"x":[80,0],"d":[112,1],"y":[80,32],"Ĺ":[142,0],"ď":[112,1],"ý":[112,32],"e":[81,1],"z":[80,0],"é":[112,1],"ě":[112,1],"Ň":[142,0],"ę":[81,32],"Ń":[142,0],"ß":[113,0],"O":[113,1],"g":[81,33],"Ó":[142,1],"Ö":[136,1],"Ô":[142,1],"j":[112,32],"Q":[113,3],"Ř":[142,0],"Ŕ":[142,0],"ĺ":[142,0],"S":[113,1],"Š":[142,1],"m":[81,0],"Ś":[142,1],"n":[81,0],"?":[113,0]};
@@ -267,9 +281,22 @@ export default function App() {
                   {expLine===idx&&(
                     <div style={{padding:"8px 14px 14px",borderTop:"1px solid #1a1a1a"}}>
                       <div style={{display:"flex",flexWrap:"wrap",gap:2,alignItems:"flex-end"}}>
-                        {lr.details.map((d,i)=>(
+                        {lr.details.map((d,i)=>{
+                          const di = d.type==="char" ? DIACRITIC_INFO[d.char] : null;
+                          const hd = d.type==="char" ? (CHAR_HEIGHTS[d.char]||[112,0]) : null;
+                          const accentH = di&&hd&&!di.below ? Math.round((hd[0]-di.b)*lr.k) : 0;
+                          const accentBot = di&&!di.below ? Math.round(di.b*lr.k) : 0;
+                          const descendH = hd&&hd[1]>=8 ? Math.round(hd[1]*lr.k) : 0;
+                          return(
                           <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",minWidth:d.type==="kern"?26:32,padding:"3px 2px",borderRadius:5,
                             background:d.error?"#3a1515":d.undefined?"#3a2a15":d.type==="kern"?"#141414":d.type==="space"?"#1a1520":"transparent"}}>
+                            {accentH>0&&(
+                              <div style={{display:"flex",flexDirection:"column",alignItems:"center",borderBottom:"1px solid #444",paddingBottom:2,marginBottom:2,width:"100%"}}>
+                                <span style={{fontSize:13,color:"#e8a050",fontFamily:"'DM Mono',monospace",lineHeight:1}}>{di.s}</span>
+                                <span style={{fontSize:9,color:"#a07040",fontFamily:"'DM Mono',monospace"}}>{accentH}mm</span>
+                                <span style={{fontSize:8,color:"#664",fontFamily:"'DM Mono',monospace"}}>↑{accentBot}</span>
+                              </div>
+                            )}
                             <span style={{fontSize:d.type==="kern"?9:14,fontWeight:d.type==="char"||d.type==="space"?600:400,
                               color:d.error?"#e55":d.undefined?"#e95":d.type==="kern"?"#555":d.type==="space"?"#a8a":"#ccc",
                               fontFamily:"'DM Mono',monospace",marginBottom:1}}>
@@ -279,8 +306,14 @@ export default function App() {
                               color:d.error?"#e55":d.undefined?"#e95":d.width<0?"#e88":d.type==="kern"?"#444":"#999"}}>
                               {d.error?"?":d.undefined?"n/d":Math.round(d.width*lr.k*lr.compression/100)}
                             </span>
+                            {descendH>0&&(
+                              <div style={{borderTop:"1px solid #334",paddingTop:2,marginTop:2,width:"100%",textAlign:"center"}}>
+                                <span style={{fontSize:9,color:"#5080b0",fontFamily:"'DM Mono',monospace"}}>↓{descendH}mm</span>
+                              </div>
+                            )}
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                       {lr.hasError&&<div style={{marginTop:8,fontSize:11,color:"#e55",background:"#2a1515",padding:"6px 10px",borderRadius:5}}>Neznámé znaky v R 90.</div>}
                       {lr.hasUndefined&&<div style={{marginTop:8,fontSize:11,color:"#e95",background:"#2a2015",padding:"6px 10px",borderRadius:5}}>Nedefinované páry v R 90.</div>}
