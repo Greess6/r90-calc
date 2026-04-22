@@ -13,6 +13,14 @@ const SIGN_PRESETS = {
   IS8b: { name: "IS 8b", lineGap: 4, padTop: 5, padBottom: 5, padSide: 5, desc: "Dálková návěst se vzdáleností – víceřádková se vzdálenostmi" },
 };
 
+const SIGN_DRAWINGS = {
+  IS6a: { file: "/signs/IS6a-497.png", page: 497, label: "IS 6a-1" },
+  IS6b: { file: "/signs/IS6b-499.png", page: 499, label: "IS 6b-1" },
+  IS6g: { file: "/signs/IS6g-509.png", page: 509, label: "IS 6g" },
+  IS7a: { file: "/signs/IS7a-510.png", page: 510, label: "IS 7a-1" },
+  IS8b: { file: "/signs/IS8b-514.png", page: 514, label: "IS 8b-1" },
+};
+
 // Diakritika: symbol a výška základního písmene při h=112
 // b = výška základního písmene (verzálky=112, minusky bez dotahu=81, s dotahem=112)
 const DIACRITIC_INFO = {
@@ -120,6 +128,7 @@ export default function App() {
   const [maxWI, setMaxWI] = useState("");
   const [showFinder, setShowFinder] = useState(false);
   const [expLine, setExpLine] = useState(null);
+  const [showDrawing, setShowDrawing] = useState(false);
 
   const applyPreset = (key) => {
     setPreset(key);
@@ -146,7 +155,7 @@ export default function App() {
         {/* Sign preset */}
         <div style={{marginBottom:16}}>
           <label style={labelStyle}>Typ značky</label>
-          <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+          <div style={{display:"flex",gap:4,flexWrap:"wrap",alignItems:"center"}}>
             {Object.entries(SIGN_PRESETS).map(([key,p])=>(
               <button key={key} onClick={()=>applyPreset(key)} style={{
                 padding:"7px 14px",borderRadius:8,fontSize:12,fontWeight:preset===key?600:400,
@@ -154,8 +163,27 @@ export default function App() {
                 border:`1px solid ${preset===key?"#e8e4df":"#333"}`,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",
               }}>{p.name}</button>
             ))}
+            {SIGN_DRAWINGS[preset]&&(
+              <button onClick={()=>setShowDrawing(v=>!v)} style={{
+                padding:"7px 14px",borderRadius:8,fontSize:12,fontWeight:400,marginLeft:8,
+                background:showDrawing?"#1a2a3a":"#141414",color:showDrawing?"#7ab":"#555",
+                border:`1px solid ${showDrawing?"#2a4a6a":"#333"}`,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",
+              }}>📐 Výkres VL 6.1</button>
+            )}
           </div>
           <div style={{fontSize:11,color:"#444",marginTop:4}}>{SIGN_PRESETS[preset]?.desc}</div>
+          {showDrawing&&SIGN_DRAWINGS[preset]&&(
+            <div style={{marginTop:12,borderRadius:10,border:"1px solid #1e3a5a",background:"#0d1a26",overflow:"hidden"}}>
+              <div style={{padding:"8px 14px",borderBottom:"1px solid #1e3a5a",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                <span style={{fontSize:11,color:"#5a8ab0",fontFamily:"'DM Mono',monospace",letterSpacing:"0.04em"}}>
+                  VL 6.1 / 2019 — {SIGN_DRAWINGS[preset].label} — str. {SIGN_DRAWINGS[preset].page}
+                </span>
+                <button onClick={()=>setShowDrawing(false)} style={{background:"none",border:"none",color:"#444",cursor:"pointer",fontSize:16,lineHeight:1,padding:"0 4px"}}>✕</button>
+              </div>
+              <img src={SIGN_DRAWINGS[preset].file} alt={`Výkres ${SIGN_DRAWINGS[preset].label}`}
+                style={{width:"100%",display:"block",imageRendering:"auto"}}/>
+            </div>
+          )}
         </div>
 
         {/* Text */}
@@ -282,41 +310,46 @@ export default function App() {
                     <div style={{padding:"8px 14px 14px",borderTop:"1px solid #1a1a1a"}}>
                       <div style={{display:"flex",flexWrap:"wrap",gap:2,alignItems:"flex-end"}}>
                         {lr.details.map((d,i)=>{
-                          const di = d.type==="char" ? DIACRITIC_INFO[d.char] : null;
                           const hd = d.type==="char" ? (CHAR_HEIGHTS[d.char]||[112,0]) : null;
-                          const accentH = di&&hd&&!di.below ? Math.round((hd[0]-di.b)*lr.k) : 0;
-                          const accentBot = di&&!di.below ? Math.round(di.b*lr.k) : 0;
+                          const nadScaled = hd ? Math.round(hd[0]*lr.k) : null;
+                          const showNad = nadScaled!==null && Math.abs(hd[0]-112)>1;
                           const descendH = hd&&hd[1]>=8 ? Math.round(hd[1]*lr.k) : 0;
+                          if(d.type==="kern") return(
+                            <div key={i} title={`Mezera '${d.char1}'→'${d.char2}'\nPři h=${height}: ${d.width===null?"nedefinováno":Math.round(d.width*lr.k*lr.compression/100)+" mm"}\nPři h=112: ${d.width===null?"n/d":d.width+" mm"}`}
+                              style={{display:"flex",flexDirection:"column",alignItems:"center",minWidth:18,padding:"3px 2px",cursor:"help",alignSelf:"center"}}>
+                              <span style={{fontSize:8,color:"#383838",fontFamily:"'DM Mono',monospace",lineHeight:1.2}}>↔</span>
+                              <span style={{fontSize:10,fontFamily:"'DM Mono',monospace",fontWeight:500,
+                                color:d.undefined?"#e95":d.width<0?"#e88":"#555"}}>
+                                {d.undefined?"?":Math.round(d.width*lr.k*lr.compression/100)}
+                              </span>
+                            </div>
+                          );
                           return(
                           <div key={i} title={
-                            d.type==="kern"
-                              ? `Kerning (mezera) mezi '${d.char1}' a '${d.char2}'\nPři h=${height}: ${d.width===null?"nedefinováno":Math.round(d.width*lr.k*lr.compression/100)+" mm"}\nPři h=112: ${d.width===null?"n/d":d.width+" mm"}`
-                              : d.type==="space"
+                            d.type==="space"
                               ? `Mezera mezi slovy\nPři h=${height}: ${Math.round(d.width*lr.k)} mm`
                               : d.type==="char" && !d.error
-                              ? `Šířka znaku '${d.char}'\nPři h=${height}: ${Math.round(d.width*lr.k*lr.compression/100)} mm\nPři h=112: ${d.width} mm`
+                              ? `Znak '${d.char}'\nŠířka při h=${height}: ${Math.round(d.width*lr.k*lr.compression/100)} mm  (při h=112: ${d.width} mm)\nCelková výška: ${nadScaled} mm  (při h=112: ${hd[0]} mm)${hd[1]>0?`\nDotah pod účaří: ${Math.round(hd[1]*lr.k)} mm  (při h=112: ${hd[1]} mm)`:""}`
                               : d.error ? `Neznámý znak '${d.char}' — není v R 90` : ""
-                          } style={{display:"flex",flexDirection:"column",alignItems:"center",minWidth:d.type==="kern"?26:32,padding:"3px 2px",borderRadius:5,cursor:"help",
-                            background:d.error?"#3a1515":d.undefined?"#3a2a15":d.type==="kern"?"#141414":d.type==="space"?"#1a1520":"transparent"}}>
-                            {accentH>0&&(
-                              <div title={`Diakritika '${di.s}'\nVýška znaménka: ${accentH} mm\nZačíná ${accentBot} mm nad účařím (= vrchol základního písmene)`} style={{display:"flex",flexDirection:"column",alignItems:"center",borderBottom:"1px solid #444",paddingBottom:2,marginBottom:2,width:"100%",cursor:"help"}}>
-                                <span style={{fontSize:13,color:"#e8a050",fontFamily:"'DM Mono',monospace",lineHeight:1}}>{di.s}</span>
-                                <span style={{fontSize:9,color:"#a07040",fontFamily:"'DM Mono',monospace"}}>{accentH}mm</span>
-                                <span style={{fontSize:8,color:"#664",fontFamily:"'DM Mono',monospace"}}>↑{accentBot}</span>
+                          } style={{display:"flex",flexDirection:"column",alignItems:"center",minWidth:32,padding:"3px 2px",borderRadius:5,cursor:"help",
+                            background:d.error?"#3a1515":d.undefined?"#3a2a15":d.type==="space"?"#1a1520":"transparent"}}>
+                            {showNad&&(
+                              <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",marginBottom:1}}>
+                                <span style={{fontSize:9,color:hd[0]>112?"#e8a050":"#6090b0",fontFamily:"'DM Mono',monospace"}}>↑{nadScaled}</span>
                               </div>
                             )}
-                            <span style={{fontSize:d.type==="kern"?9:14,fontWeight:d.type==="char"||d.type==="space"?600:400,
-                              color:d.error?"#e55":d.undefined?"#e95":d.type==="kern"?"#555":d.type==="space"?"#a8a":"#ccc",
+                            <span style={{fontSize:14,fontWeight:600,
+                              color:d.error?"#e55":d.undefined?"#e95":d.type==="space"?"#a8a":"#ccc",
                               fontFamily:"'DM Mono',monospace",marginBottom:1}}>
-                              {d.type==="kern"?`${d.char1}‑${d.char2}`:d.char}
+                              {d.char}
                             </span>
                             <span style={{fontSize:11,fontFamily:"'DM Mono',monospace",fontWeight:500,
-                              color:d.error?"#e55":d.undefined?"#e95":d.width<0?"#e88":d.type==="kern"?"#444":"#999"}}>
-                              {d.error?"?":d.undefined?"n/d":Math.round(d.width*lr.k*lr.compression/100)}
+                              color:d.error?"#e55":d.undefined?"#e95":d.width<0?"#e88":"#999"}}>
+                              {d.error?"?":Math.round(d.width*lr.k*lr.compression/100)}
                             </span>
                             {descendH>0&&(
                               <div title={`Dotah pod účaří: ${descendH} mm`} style={{borderTop:"1px solid #334",paddingTop:2,marginTop:2,width:"100%",textAlign:"center",cursor:"help"}}>
-                                <span style={{fontSize:9,color:"#5080b0",fontFamily:"'DM Mono',monospace"}}>↓{descendH}mm</span>
+                                <span style={{fontSize:9,color:"#5080b0",fontFamily:"'DM Mono',monospace"}}>↓{descendH}</span>
                               </div>
                             )}
                           </div>
