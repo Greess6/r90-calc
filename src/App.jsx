@@ -172,18 +172,6 @@ export default function App() {
             )}
           </div>
           <div style={{fontSize:11,color:"#444",marginTop:4}}>{SIGN_PRESETS[preset]?.desc}</div>
-          {showDrawing&&SIGN_DRAWINGS[preset]&&(
-            <div style={{marginTop:12,borderRadius:10,border:"1px solid #1e3a5a",background:"#0d1a26",overflow:"hidden"}}>
-              <div style={{padding:"8px 14px",borderBottom:"1px solid #1e3a5a",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                <span style={{fontSize:11,color:"#5a8ab0",fontFamily:"'DM Mono',monospace",letterSpacing:"0.04em"}}>
-                  VL 6.1 / 2019 — {SIGN_DRAWINGS[preset].label} — str. {SIGN_DRAWINGS[preset].page}
-                </span>
-                <button onClick={()=>setShowDrawing(false)} style={{background:"none",border:"none",color:"#444",cursor:"pointer",fontSize:16,lineHeight:1,padding:"0 4px"}}>✕</button>
-              </div>
-              <img src={SIGN_DRAWINGS[preset].file} alt={`Výkres ${SIGN_DRAWINGS[preset].label}`}
-                style={{width:"100%",display:"block",imageRendering:"auto"}}/>
-            </div>
-          )}
         </div>
 
         {/* Text */}
@@ -260,36 +248,50 @@ export default function App() {
             {/* Schema */}
             <div style={{padding:"16px 24px",borderBottom:"1px solid #1a1a1a"}}>
               <div style={{fontSize:11,color:"#555",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Schéma</div>
-              <div style={{background:"#0e0e0e",borderRadius:8,padding:16,overflow:"auto"}}>
-                {(()=>{
-                  const tw=result.totalWidth||1,th=result.totalHeight||1;
-                  const sc=Math.min(1,550/Math.max(tw,200),280/Math.max(th,100));
-                  const sw=Math.round(tw*sc),sh=Math.round(th*sc);
-                  const pT=result.padTop*sc,pB=result.padBottom*sc,pS=result.padSide*sc;
-                  const h=height*sc,gap=result.lineGap*sc,mL=40,mT=30;
-                  return(
-                    <svg viewBox={`0 0 ${sw+mL+70} ${sh+mT+40}`} style={{width:"100%",maxHeight:320}}>
-                      <rect x={mL} y={mT} width={sw} height={sh} fill="none" stroke="#3a5a3a" strokeWidth={1.5} rx={4}/>
-                      <line x1={mL} y1={mT-8} x2={mL+sw} y2={mT-8} stroke="#3a5a3a" strokeWidth={0.5}/>
-                      <text x={mL+sw/2} y={mT-14} textAnchor="middle" fill="#5a8a5a" fontSize={10} fontFamily="DM Mono,monospace">{result.totalWidth} mm</text>
-                      <text x={mL+sw+14} y={mT+sh/2} fill="#5a8a5a" fontSize={10} fontFamily="DM Mono,monospace" dominantBaseline="middle" writingMode="vertical-rl">{result.totalHeight} mm</text>
-                      {pT>3&&<><rect x={mL} y={mT} width={sw} height={pT} fill="rgba(100,60,60,0.08)"/>
-                        <text x={mL+sw/2} y={mT+pT/2} textAnchor="middle" dominantBaseline="middle" fill="#7a5555" fontSize={8} fontFamily="DM Mono,monospace">{padTopE}E</text></>}
-                      {pB>3&&<><rect x={mL} y={mT+sh-pB} width={sw} height={pB} fill="rgba(100,60,60,0.08)"/>
-                        <text x={mL+sw/2} y={mT+sh-pB/2} textAnchor="middle" dominantBaseline="middle" fill="#7a5555" fontSize={8} fontFamily="DM Mono,monospace">{padBotE}E</text></>}
-                      {result.lineResults.filter(Boolean).map((lr,i)=>{
-                        const lw=lr.lengthFinal*sc,y=mT+pT+i*(h+gap);
-                        return(<g key={i}>
-                          <rect x={mL+pS} y={y} width={Math.max(lw,2)} height={h} fill="rgba(80,130,180,0.12)" stroke="rgba(80,130,180,0.3)" strokeWidth={0.5} rx={1}/>
-                          <text x={mL+pS+Math.max(lw,2)/2} y={y+h/2} textAnchor="middle" dominantBaseline="middle" fill="#8ab" fontSize={Math.min(h*0.55,13)} fontFamily="DM Mono,monospace" fontWeight={500}>{lr.text}</text>
-                          <text x={mL+pS+lw+4} y={y+h/2} fill="#445" fontSize={7} fontFamily="DM Mono,monospace" dominantBaseline="middle">{lr.lengthFinal}</text>
-                          {i<result.numLines-1&&gap>4&&<><line x1={mL+6} y1={y+h+1} x2={mL+6} y2={y+h+gap-1} stroke="#665544" strokeWidth={0.5}/>
-                            <text x={mL+10} y={y+h+gap/2} fill="#887766" fontSize={7} fontFamily="DM Mono,monospace" dominantBaseline="middle">{lineGapE}E</text></>}
-                        </g>);
-                      })}
-                    </svg>
-                  );
-                })()}
+              <div style={{display:"flex",gap:16,alignItems:"flex-start"}}>
+                <div style={{flex:1,minWidth:0,background:"#0e0e0e",borderRadius:8,padding:16,overflow:"auto"}}>
+                  {(()=>{
+                    const tw=result.totalWidth||1,th=result.totalHeight||1;
+                    const sc=Math.min(1,550/Math.max(tw,200),280/Math.max(th,100));
+                    const sw=Math.round(tw*sc),sh=Math.round(th*sc);
+                    const pT=result.padTop*sc,pB=result.padBottom*sc,pS=result.padSide*sc;
+                    const h=height*sc,gap=result.lineGap*sc,mL=40,mT=30;
+                    return(
+                      <svg viewBox={`0 0 ${sw+mL+70} ${sh+mT+40}`} style={{width:"100%",maxHeight:320}}>
+                        <rect x={mL} y={mT} width={sw} height={sh} fill="none" stroke="#4a7a4a" strokeWidth={1.5} rx={4}/>
+                        <line x1={mL} y1={mT-8} x2={mL+sw} y2={mT-8} stroke="#4a7a4a" strokeWidth={1}/>
+                        <text x={mL+sw/2} y={mT-14} textAnchor="middle" fill="#7aba7a" fontSize={12} fontFamily="DM Mono,monospace" fontWeight="600">{result.totalWidth} mm</text>
+                        <text x={mL+sw+14} y={mT+sh/2} fill="#7aba7a" fontSize={12} fontFamily="DM Mono,monospace" dominantBaseline="middle" writingMode="vertical-rl" fontWeight="600">{result.totalHeight} mm</text>
+                        {pT>3&&<><rect x={mL} y={mT} width={sw} height={pT} fill="rgba(100,60,60,0.12)"/>
+                          <text x={mL+sw/2} y={mT+pT/2} textAnchor="middle" dominantBaseline="middle" fill="#dd9988" fontSize={10} fontFamily="DM Mono,monospace" fontWeight="500">{padTopE}E</text></>}
+                        {pB>3&&<><rect x={mL} y={mT+sh-pB} width={sw} height={pB} fill="rgba(100,60,60,0.12)"/>
+                          <text x={mL+sw/2} y={mT+sh-pB/2} textAnchor="middle" dominantBaseline="middle" fill="#dd9988" fontSize={10} fontFamily="DM Mono,monospace" fontWeight="500">{padBotE}E</text></>}
+                        {result.lineResults.filter(Boolean).map((lr,i)=>{
+                          const lw=lr.lengthFinal*sc,y=mT+pT+i*(h+gap);
+                          return(<g key={i}>
+                            <rect x={mL+pS} y={y} width={Math.max(lw,2)} height={h} fill="rgba(80,130,180,0.18)" stroke="rgba(80,130,180,0.5)" strokeWidth={1} rx={1}/>
+                            <text x={mL+pS+Math.max(lw,2)/2} y={y+h/2} textAnchor="middle" dominantBaseline="middle" fill="#aad4ff" fontSize={Math.min(h*0.65,14)} fontFamily="DM Mono,monospace" fontWeight="700">{lr.text}</text>
+                            <text x={mL+pS+lw+5} y={y+h/2} fill="#7799bb" fontSize={9} fontFamily="DM Mono,monospace" dominantBaseline="middle" fontWeight="500">{lr.lengthFinal}</text>
+                            {i<result.numLines-1&&gap>4&&<><line x1={mL+6} y1={y+h+1} x2={mL+6} y2={y+h+gap-1} stroke="#887755" strokeWidth={0.8}/>
+                              <text x={mL+10} y={y+h+gap/2} fill="#aa9966" fontSize={9} fontFamily="DM Mono,monospace" dominantBaseline="middle" fontWeight="500">{lineGapE}E</text></>}
+                          </g>);
+                        })}
+                      </svg>
+                    );
+                  })()}
+                </div>
+                {showDrawing&&SIGN_DRAWINGS[preset]&&(
+                  <div style={{width:260,flexShrink:0,borderRadius:8,border:"1px solid #1e3a5a",background:"#0d1a26",overflow:"hidden"}}>
+                    <div style={{padding:"6px 10px",borderBottom:"1px solid #1e3a5a",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                      <span style={{fontSize:10,color:"#5a8ab0",fontFamily:"'DM Mono',monospace",letterSpacing:"0.03em"}}>
+                        {SIGN_DRAWINGS[preset].label} — str. {SIGN_DRAWINGS[preset].page}
+                      </span>
+                      <button onClick={()=>setShowDrawing(false)} style={{background:"none",border:"none",color:"#444",cursor:"pointer",fontSize:14,lineHeight:1,padding:"0 4px"}}>✕</button>
+                    </div>
+                    <img src={SIGN_DRAWINGS[preset].file} alt={`Výkres ${SIGN_DRAWINGS[preset].label}`}
+                      style={{width:"100%",display:"block",maxHeight:320,objectFit:"contain",imageRendering:"auto"}}/>
+                  </div>
+                )}
               </div>
             </div>
 
