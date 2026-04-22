@@ -248,7 +248,7 @@ export default function App() {
             {/* Schema */}
             <div style={{padding:"16px 24px",borderBottom:"1px solid #1a1a1a"}}>
               <div style={{fontSize:11,color:"#555",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Schéma</div>
-              <div style={{display:"flex",gap:16,alignItems:"flex-start"}}>
+              <div style={{display:"flex",gap:16,alignItems:"flex-start",flexWrap:"wrap"}}>
                 <div style={{flex:1,minWidth:0,background:"#0e0e0e",borderRadius:8,padding:16,overflow:"auto"}}>
                   {(()=>{
                     const tw=result.totalWidth||1,th=result.totalHeight||1;
@@ -281,7 +281,7 @@ export default function App() {
                   })()}
                 </div>
                 {showDrawing&&SIGN_DRAWINGS[preset]&&(
-                  <div style={{width:260,flexShrink:0,borderRadius:8,border:"1px solid #1e3a5a",background:"#0d1a26",overflow:"hidden"}}>
+                  <div style={{width:520,flexShrink:0,borderRadius:8,border:"1px solid #1e3a5a",background:"#0d1a26",overflow:"hidden"}}>
                     <div style={{padding:"6px 10px",borderBottom:"1px solid #1e3a5a",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                       <span style={{fontSize:10,color:"#5a8ab0",fontFamily:"'DM Mono',monospace",letterSpacing:"0.03em"}}>
                         {SIGN_DRAWINGS[preset].label} — str. {SIGN_DRAWINGS[preset].page}
@@ -289,7 +289,7 @@ export default function App() {
                       <button onClick={()=>setShowDrawing(false)} style={{background:"none",border:"none",color:"#444",cursor:"pointer",fontSize:14,lineHeight:1,padding:"0 4px"}}>✕</button>
                     </div>
                     <img src={SIGN_DRAWINGS[preset].file} alt={`Výkres ${SIGN_DRAWINGS[preset].label}`}
-                      style={{width:"100%",display:"block",maxHeight:320,objectFit:"contain",imageRendering:"auto"}}/>
+                      style={{width:"100%",display:"block",maxHeight:640,objectFit:"contain",imageRendering:"auto"}}/>
                   </div>
                 )}
               </div>
