@@ -5,12 +5,13 @@ const FONT_DATA = {"mit":{"widths":{"A":96,"Ť":79,"ń":64,"/":48,"Á":96,"U":80
 const STANDARD_HEIGHTS = [50,70,98,100,112,119,135,140,150,175,200,210,245,250,280,300,315,350,420];
 
 const SIGN_PRESETS = {
-  custom: { name: "Vlastní", lineGap: 4, padTop: 5, padBottom: 5, padSide: 5, desc: "Vlastní nastavení okrajů" },
-  IS6a: { name: "IS 6a", lineGap: 4, padTop: 5, padBottom: 5, padSide: 5, desc: "Označení křižovatky – jednořádková, symbol+text" },
-  IS6b: { name: "IS 6b", lineGap: 4, padTop: 5, padBottom: 5, padSide: 5, desc: "Návěst před křižovatkou – víceřádková s šipkami a symboly" },
-  IS6g: { name: "IS 6g", lineGap: 4, padTop: 5, padBottom: 5, padSide: 5, desc: "Směrová návěst před odbočením – víceřádková" },
-  IS7a: { name: "IS 7a", lineGap: 4, padTop: 5, padBottom: 5, padSide: 5, desc: "Směrová návěst pro odbočení" },
-  IS8b: { name: "IS 8b", lineGap: 4, padTop: 5, padBottom: 5, padSide: 5, desc: "Dálková návěst se vzdáleností – víceřádková se vzdálenostmi" },
+  custom:  { name: "Vlastní", lineGap: 4, padTop: 5, padBottom: 5, padSide: 5, lem: 0,   desc: "Vlastní nastavení okrajů" },
+  IS6a:   { name: "IS 6a",  lineGap: 4, padTop: 5, padBottom: 5, padSide: 5, lem: 0,   desc: "Označení křižovatky – jednořádková, symbol+text" },
+  IS6b:   { name: "IS 6b",  lineGap: 4, padTop: 5, padBottom: 5, padSide: 5, lem: 0,   desc: "Návěst před křižovatkou – víceřádková s šipkami a symboly" },
+  IS6g:   { name: "IS 6g",  lineGap: 4, padTop: 5, padBottom: 5, padSide: 5, lem: 0,   desc: "Směrová návěst před odbočením – víceřádková" },
+  IS7a:   { name: "IS 7a",  lineGap: 4, padTop: 5, padBottom: 5, padSide: 5, lem: 0,   desc: "Směrová návěst pro odbočení" },
+  IS8b:   { name: "IS 8b",  lineGap: 4, padTop: 5, padBottom: 5, padSide: 5, lem: 0,   desc: "Dálková návěst se vzdáleností – víceřádková se vzdálenostmi" },
+  IS16b:  { name: "IS 16b", lineGap: 4, padTop: 1.2, padBottom: 1.2, padSide: 1.2, lem: 0.6, desc: "Tabulka s číslem výjezdu – okraje 1,2E, lem 0,6E" },
 };
 
 const SIGN_DRAWINGS = {
@@ -126,6 +127,7 @@ export default function App() {
   const [padBotE, setPadBotE] = useState(5);
   const [padSideE, setPadSideE] = useState(5);
   const [maxWI, setMaxWI] = useState("");
+  const [lemE, setLemE] = useState(0);
   const [showFinder, setShowFinder] = useState(false);
   const [expLine, setExpLine] = useState(null);
   const [showDrawing, setShowDrawing] = useState(false);
@@ -134,6 +136,7 @@ export default function App() {
     setPreset(key);
     const p = SIGN_PRESETS[key];
     setLineGapE(p.lineGap); setPadTopE(p.padTop); setPadBotE(p.padBottom); setPadSideE(p.padSide);
+    setLemE(p.lem);
   };
 
   const result = useMemo(() => calcMultiline(text,fontType,height,compression,lineGapE,padTopE,padBotE,padSideE),
@@ -227,14 +230,29 @@ export default function App() {
           <EInput label="Horní okraj" value={padTopE} onChange={v=>{setPadTopE(v);setPreset("custom");}} hint={`${Math.round(padTopE*E)} mm`}/>
           <EInput label="Dolní okraj" value={padBotE} onChange={v=>{setPadBotE(v);setPreset("custom");}} hint={`${Math.round(padBotE*E)} mm`}/>
           <EInput label="Boční okraj" value={padSideE} onChange={v=>{setPadSideE(v);setPreset("custom");}} hint={`${Math.round(padSideE*E)} mm`}/>
+          <div>
+            <label style={labelStyle}>Lem značky</label>
+            <div style={{display:"flex",borderRadius:8,overflow:"hidden",border:"1px solid #333"}}>
+              {[[0,"Žádný"],[0.6,"0,6 E"],[1.6,"1,6 E"]].map(([v,l])=>(
+                <button key={v} onClick={()=>{setLemE(v);setPreset("custom");}} style={{
+                  flex:1,padding:"7px 6px",background:lemE===v?"#2a1f10":"#141414",
+                  color:lemE===v?"#e8a050":"#666",border:"none",cursor:"pointer",fontSize:11,
+                  fontWeight:lemE===v?600:400,fontFamily:"'DM Mono',monospace",
+                  borderRight:v!==1.6?"1px solid #333":"none"}}>{l}</button>
+              ))}
+            </div>
+            {lemE>0&&<div style={{fontSize:10,color:"#775533",marginTop:3}}>{Math.round(lemE*E)} mm na každé straně</div>}
+          </div>
         </div>
 
         {/* Results */}
         {result&&(
           <div style={{background:"#141414",borderRadius:12,border:"1px solid #222",overflow:"hidden",marginBottom:20}}>
             <div style={{padding:"20px 24px",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:14,borderBottom:"1px solid #1a1a1a"}}>
-              <RC label="Šířka text. pole" value={result.totalWidth} unit="mm" big accent/>
-              <RC label="Výška text. pole" value={result.totalHeight} unit="mm" big accent/>
+              {lemE>0&&<RC label="Šířka značky" value={result.totalWidth+2*Math.round(lemE*E)} unit="mm" big accent/>}
+              {lemE>0&&<RC label="Výška značky" value={result.totalHeight+2*Math.round(lemE*E)} unit="mm" big accent/>}
+              <RC label="Šířka text. pole" value={result.totalWidth} unit="mm" big={lemE===0} accent={lemE===0}/>
+              <RC label="Výška text. pole" value={result.totalHeight} unit="mm" big={lemE===0} accent={lemE===0}/>
               <RC label="Nejdelší řádek" value={result.maxWidth} unit="mm"/>
               <RC label="Výška textu" value={result.textBlockHeightActual} unit="mm"/>
               {(result.diacTop>0||result.diacBot>0)&&<RC label="Přesah diakr. ↑" value={result.diacTop} unit="mm"/>}
@@ -252,28 +270,53 @@ export default function App() {
                 <div style={{flex:1,minWidth:0,background:"#0e0e0e",borderRadius:8,padding:16,overflow:"auto"}}>
                   {(()=>{
                     const tw=result.totalWidth||1,th=result.totalHeight||1;
-                    const sc=Math.min(1,550/Math.max(tw,200),280/Math.max(th,100));
+                    const lemMm=Math.round(lemE*E);
+                    const signW=tw+2*lemMm, signH=th+2*lemMm;
+                    const sc=Math.min(1,550/Math.max(signW,200),280/Math.max(signH,100));
                     const sw=Math.round(tw*sc),sh=Math.round(th*sc);
+                    const lm=Math.round(lemMm*sc);
                     const pT=result.padTop*sc,pB=result.padBottom*sc,pS=result.padSide*sc;
                     const h=height*sc,gap=result.lineGap*sc,mL=40,mT=30;
+                    const ox=mL+lm, oy=mT+lm; // text field origin offset by lem
+                    const totalSW=sw+2*lm, totalSH=sh+2*lm;
                     return(
-                      <svg viewBox={`0 0 ${sw+mL+70} ${sh+mT+40}`} style={{width:"100%",maxHeight:320}}>
-                        <rect x={mL} y={mT} width={sw} height={sh} fill="none" stroke="#4a7a4a" strokeWidth={1.5} rx={4}/>
-                        <line x1={mL} y1={mT-8} x2={mL+sw} y2={mT-8} stroke="#4a7a4a" strokeWidth={1}/>
-                        <text x={mL+sw/2} y={mT-14} textAnchor="middle" fill="#7aba7a" fontSize={12} fontFamily="DM Mono,monospace" fontWeight="600">{result.totalWidth} mm</text>
-                        <text x={mL+sw+14} y={mT+sh/2} fill="#7aba7a" fontSize={12} fontFamily="DM Mono,monospace" dominantBaseline="middle" writingMode="vertical-rl" fontWeight="600">{result.totalHeight} mm</text>
-                        {pT>3&&<><rect x={mL} y={mT} width={sw} height={pT} fill="rgba(100,60,60,0.12)"/>
-                          <text x={mL+sw/2} y={mT+pT/2} textAnchor="middle" dominantBaseline="middle" fill="#dd9988" fontSize={10} fontFamily="DM Mono,monospace" fontWeight="500">{padTopE}E</text></>}
-                        {pB>3&&<><rect x={mL} y={mT+sh-pB} width={sw} height={pB} fill="rgba(100,60,60,0.12)"/>
-                          <text x={mL+sw/2} y={mT+sh-pB/2} textAnchor="middle" dominantBaseline="middle" fill="#dd9988" fontSize={10} fontFamily="DM Mono,monospace" fontWeight="500">{padBotE}E</text></>}
+                      <svg viewBox={`0 0 ${totalSW+mL+80} ${totalSH+mT+40}`} style={{width:"100%",maxHeight:320}}>
+                        {/* Lem – outer sign border */}
+                        {lm>0&&<>
+                          <rect x={mL} y={mT} width={totalSW} height={totalSH} fill="rgba(180,120,30,0.08)" stroke="#c87820" strokeWidth={1.5} rx={Math.round(1.6*E*sc)}/>
+                          <rect x={mL+lm} y={mT+lm} width={sw} height={sh} fill="none" stroke="#c87820" strokeWidth={0.6} strokeDasharray="4 3" rx={2}/>
+                          {/* lem dimension labels */}
+                          <line x1={mL} y1={mT-8} x2={mL+totalSW} y2={mT-8} stroke="#c87820" strokeWidth={1}/>
+                          <text x={mL+totalSW/2} y={mT-14} textAnchor="middle" fill="#e8a050" fontSize={12} fontFamily="DM Mono,monospace" fontWeight="600">{signW} mm</text>
+                          <text x={mL+totalSW+16} y={mT+totalSH/2} fill="#e8a050" fontSize={12} fontFamily="DM Mono,monospace" dominantBaseline="middle" writingMode="vertical-rl" fontWeight="600">{signH} mm</text>
+                          {/* lem width indicator */}
+                          <line x1={mL+1} y1={mT+totalSH+6} x2={mL+lm-1} y2={mT+totalSH+6} stroke="#c87820" strokeWidth={0.8} markerEnd="url(#arr)"/>
+                          <text x={mL+lm/2} y={mT+totalSH+16} textAnchor="middle" fill="#c87820" fontSize={9} fontFamily="DM Mono,monospace">{lemE}E</text>
+                        </>}
+                        {/* Text field border */}
+                        <rect x={ox} y={oy} width={sw} height={sh} fill="none" stroke="#4a7a4a" strokeWidth={lm>0?1:1.5} rx={2}/>
+                        {lm===0&&<>
+                          <line x1={mL} y1={mT-8} x2={mL+sw} y2={mT-8} stroke="#4a7a4a" strokeWidth={1}/>
+                          <text x={ox+sw/2} y={mT-14} textAnchor="middle" fill="#7aba7a" fontSize={12} fontFamily="DM Mono,monospace" fontWeight="600">{result.totalWidth} mm</text>
+                          <text x={ox+sw+14} y={oy+sh/2} fill="#7aba7a" fontSize={12} fontFamily="DM Mono,monospace" dominantBaseline="middle" writingMode="vertical-rl" fontWeight="600">{result.totalHeight} mm</text>
+                        </>}
+                        {lm>0&&<>
+                          <text x={ox+sw/2} y={oy-6} textAnchor="middle" fill="#5a8a5a" fontSize={9} fontFamily="DM Mono,monospace">{result.totalWidth} mm</text>
+                        </>}
+                        {/* Padding zones */}
+                        {pT>3&&<><rect x={ox} y={oy} width={sw} height={pT} fill="rgba(100,60,60,0.12)"/>
+                          <text x={ox+sw/2} y={oy+pT/2} textAnchor="middle" dominantBaseline="middle" fill="#dd9988" fontSize={10} fontFamily="DM Mono,monospace" fontWeight="500">{padTopE}E</text></>}
+                        {pB>3&&<><rect x={ox} y={oy+sh-pB} width={sw} height={pB} fill="rgba(100,60,60,0.12)"/>
+                          <text x={ox+sw/2} y={oy+sh-pB/2} textAnchor="middle" dominantBaseline="middle" fill="#dd9988" fontSize={10} fontFamily="DM Mono,monospace" fontWeight="500">{padBotE}E</text></>}
+                        {/* Text lines */}
                         {result.lineResults.filter(Boolean).map((lr,i)=>{
-                          const lw=lr.lengthFinal*sc,y=mT+pT+i*(h+gap);
+                          const lw=lr.lengthFinal*sc,y=oy+pT+i*(h+gap);
                           return(<g key={i}>
-                            <rect x={mL+pS} y={y} width={Math.max(lw,2)} height={h} fill="rgba(80,130,180,0.18)" stroke="rgba(80,130,180,0.5)" strokeWidth={1} rx={1}/>
-                            <text x={mL+pS+Math.max(lw,2)/2} y={y+h/2} textAnchor="middle" dominantBaseline="middle" fill="#aad4ff" fontSize={Math.min(h*0.65,14)} fontFamily="DM Mono,monospace" fontWeight="700">{lr.text}</text>
-                            <text x={mL+pS+lw+5} y={y+h/2} fill="#7799bb" fontSize={9} fontFamily="DM Mono,monospace" dominantBaseline="middle" fontWeight="500">{lr.lengthFinal}</text>
-                            {i<result.numLines-1&&gap>4&&<><line x1={mL+6} y1={y+h+1} x2={mL+6} y2={y+h+gap-1} stroke="#887755" strokeWidth={0.8}/>
-                              <text x={mL+10} y={y+h+gap/2} fill="#aa9966" fontSize={9} fontFamily="DM Mono,monospace" dominantBaseline="middle" fontWeight="500">{lineGapE}E</text></>}
+                            <rect x={ox+pS} y={y} width={Math.max(lw,2)} height={h} fill="rgba(80,130,180,0.18)" stroke="rgba(80,130,180,0.5)" strokeWidth={1} rx={1}/>
+                            <text x={ox+pS+Math.max(lw,2)/2} y={y+h/2} textAnchor="middle" dominantBaseline="middle" fill="#aad4ff" fontSize={Math.min(h*0.65,14)} fontFamily="DM Mono,monospace" fontWeight="700">{lr.text}</text>
+                            <text x={ox+pS+lw+5} y={y+h/2} fill="#7799bb" fontSize={9} fontFamily="DM Mono,monospace" dominantBaseline="middle" fontWeight="500">{lr.lengthFinal}</text>
+                            {i<result.numLines-1&&gap>4&&<><line x1={ox+6} y1={y+h+1} x2={ox+6} y2={y+h+gap-1} stroke="#887755" strokeWidth={0.8}/>
+                              <text x={ox+10} y={y+h+gap/2} fill="#aa9966" fontSize={9} fontFamily="DM Mono,monospace" dominantBaseline="middle" fontWeight="500">{lineGapE}E</text></>}
                           </g>);
                         })}
                       </svg>
