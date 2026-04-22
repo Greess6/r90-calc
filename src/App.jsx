@@ -312,15 +312,15 @@ export default function App() {
                         {lr.details.map((d,i)=>{
                           const hd = d.type==="char" ? (CHAR_HEIGHTS[d.char]||[112,0]) : null;
                           const nadScaled = hd ? Math.round(hd[0]*lr.k) : null;
-                          const showNad = nadScaled!==null && Math.abs(hd[0]-112)>1;
+                          const showNad = nadScaled!==null && (Math.abs(hd[0]-112)>1 || DIACRITIC_INFO[d.char]!=null);
                           const descendH = hd&&hd[1]>=8 ? Math.round(hd[1]*lr.k) : 0;
                           if(d.type==="kern") return(
-                            <div key={i} title={`Mezera '${d.char1}'→'${d.char2}'\nPři h=${height}: ${d.width===null?"nedefinováno":Math.round(d.width*lr.k*lr.compression/100)+" mm"}\nPři h=112: ${d.width===null?"n/d":d.width+" mm"}`}
+                            <div key={i} title={`Mezera '${d.char1}'→'${d.char2}'\nPři h=${height}: ${d.width===null?"0 mm (není v tabulce R90)":Math.round(d.width*lr.k*lr.compression/100)+" mm"}\nPři h=112: ${d.width===null?"není v tabulce R90":d.width+" mm"}`}
                               style={{display:"flex",flexDirection:"column",alignItems:"center",minWidth:18,padding:"3px 2px",cursor:"help",alignSelf:"center"}}>
                               <span style={{fontSize:8,color:"#383838",fontFamily:"'DM Mono',monospace",lineHeight:1.2}}>↔</span>
                               <span style={{fontSize:10,fontFamily:"'DM Mono',monospace",fontWeight:500,
-                                color:d.undefined?"#e95":d.width<0?"#e88":"#555"}}>
-                                {d.undefined?"?":Math.round(d.width*lr.k*lr.compression/100)}
+                                color:d.undefined?"#383838":d.width<0?"#e88":"#555"}}>
+                                {d.undefined?"0":Math.round(d.width*lr.k*lr.compression/100)}
                               </span>
                             </div>
                           );
